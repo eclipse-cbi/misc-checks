@@ -1,0 +1,43 @@
+name: Test Eclipse Updates Site with External DNS Check
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  test-download:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Required Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl
+
+      - name: Check DNS Using Google DNS API
+        run: |
+          echo "Checking DNS resolution using Google DNS API..."
+          curl -s "https://dns.google/resolve?name=download.eclipse.org" | jq
+
+      - name: Check DNS Using Cloudflare DNS API
+        run: |
+          echo "Checking DNS resolution using Cloudflare DNS API..."
+          curl -s "https://cloudflare-dns.com/dns-query?name=download.eclipse.org&type=A" -H "accept: application/dns-json" | jq
+
+      - name: Perform HTTP GET Request with Timing
+        run: |
+          echo "####################### Test 1 ##########################"
+          curl -v -o /dev/null -s -w "DNS Lookup: %{time_namelookup}s\nConnect: %{time_connect}s\nStart Transfer: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" https://download.eclipse.org/eclipse/updates/4.35-I-builds
+
+          echo
+          echo "####################### Test 2 ##########################"
+          curl -v -o /dev/null -s -w "DNS Lookup: %{time_namelookup}s\nConnect: %{time_connect}s\nStart Transfer: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" https://download.eclipse.org/eclipse/updates/4.35-I-builds/
+
+          echo
+          echo "####################### Test 3 ##########################"
+          curl -v -o /dev/null -s -w "DNS Lookup: %{time_namelookup}s\nConnect: %{time_connect}s\nStart Transfer: %{time_starttransfer}s\nTotal Time: %{time_total}s\n" https://download.eclipse.org/eclipse/updates/4.35-I-builds/I20250120-1800/plugins/org.eclipse.jface.text_3.27.0.v20250120-1631.jar
+
