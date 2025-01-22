@@ -18,6 +18,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl
 
+      - name: Check if systemd-resolved is active
+        run: |
+          echo "Checking systemd-resolved status:"
+          systemctl is-active systemd-resolved || echo "systemd-resolved is not active"
+
+      - name: Display DNS configuration from systemd-resolved
+        if: success() # Only if systemd-resolved is active
+        run: |
+          echo "DNS configuration from systemd-resolved:"
+          resolvectl status || systemd-resolve --status
+
+      - name: Display fallback resolv.conf
+        run: |
+          echo "Contents of /etc/resolv.conf:"
+          cat /etc/resolv.conf
+
+      - name: Test DNS resolution
+        run: |
+          echo "Testing DNS resolution for github.com:"
+          nslookup github.com
+
+      - name: Display network interfaces
+        run: |
+          echo "Displaying network interface configuration:"
+          ip addr show
+
       - name: Check DNS Using Google DNS API
         run: |
           echo "Checking DNS resolution using Google DNS API..."
